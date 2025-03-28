@@ -17,7 +17,7 @@ import {
 } from "../ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/state/AuthStore";
-import { UserInfo } from "@/types";
+
 import { useTranslations } from "next-intl";
 
 interface FileWithPreview extends File {
@@ -36,7 +36,7 @@ export default function FileUploadComponent({
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  const { userInfo }: any = useAuthStore();
+  const { userInfo }:any = useAuthStore();
   const queryClient = useQueryClient();
   // Reference for the file input element
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -82,13 +82,15 @@ export default function FileUploadComponent({
   // Handle form submission
   const uploadDocumentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const result = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}users/upload`,
-        formData,
-        {
+      
+        const result = await axios.post(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}users/upload`,
+          formData,
+          {
           headers: {
             Authorization: `Bearer ${userInfo?.access_token}`,
           },
+          timeout: 20000,
           onUploadProgress: (progressEvent) => {
             const progress = progressEvent.total
               ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
@@ -98,8 +100,10 @@ export default function FileUploadComponent({
         }
       );
       console.log(result.data);
+      setUploadProgress(100)
       return result.data;
     },
+
     onSuccess: () => {
       console.log("Upload successful");
       queryClient.invalidateQueries({ queryKey: ["chatDocuments"] });
@@ -107,21 +111,22 @@ export default function FileUploadComponent({
         duration: 3000,
         description: toastMessages("uploadSuccessDescription"),
       });
+      setUploadProgress(100);
       handleDialog(false);
       setFiles([]);
       setDomain("");
-      setUploadProgress(100);
       setIsUploading(false);
     },
     onError: (error: any) => {
       console.error("Upload failed:", error);
+      setUploadProgress(0);
+      handleDialog(false);
+      setIsUploading(false);
       toast.error(toastMessages("uploadError"), {
         duration: 3000,
         description:
-          error.response.data.detail || toastMessages("uploadErrorDescription"),
+        error?.response?.data?.detail || toastMessages("uploadErrorDescription"),
       });
-      handleDialog(false);
-      setIsUploading(false);
     },
   });
 
@@ -143,8 +148,12 @@ export default function FileUploadComponent({
     formData.append("domain", domain);
     // formData.append("email", userInfo.user?.email);
     formData.append("email", userInfo?.email);
-    files.forEach((file) => formData.append("files", file));
-
+    
+    for (const file of files) {
+      const arrayBuffer = await file.arrayBuffer(); 
+      const blob = new Blob([arrayBuffer], { type: file.type });
+      formData.append("files", blob, file.name);
+  }
     uploadDocumentMutation.mutate(formData);
   };
 

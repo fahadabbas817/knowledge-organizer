@@ -13,6 +13,7 @@ const useChat = () => {
   const toastMessages = useTranslations("messages.common")
   const { userInfo } = useAuthStore()
   const [loading, setLoading] = useState(false)
+  const isRTL = locale === "ar";
 
   const getFullLanguage = (locale: string) => {
     if (locale === "ar") return "Arabic";
@@ -24,12 +25,12 @@ const useChat = () => {
     if (!prompt.trim()) return
 
     // Add user message
-    const userMessage = { text: prompt, isUser: true, isLoading: false }
+    const userMessage = { text: prompt, isUser: true, isLoading: false , isRTL }
     const updatedMessages = [...(documentMessages || []), userMessage]
     setDocumentMessages(updatedMessages)
 
     // Add bot loading message
-    const loadingMessage = { text: "", isUser: false, isLoading: true }
+    const loadingMessage = { text: "", isUser: false, isLoading: true , isRTL }
     const messagesWithLoading = [...updatedMessages, loadingMessage]
     setDocumentMessages(messagesWithLoading)
     const responseLanguage = getFullLanguage(locale);
@@ -42,8 +43,10 @@ const useChat = () => {
         ...updatedMessages,
         {
           text: data.data.response,
+          chunks: data.data.chunks,
           isUser: false,
           isLoading: false,
+          isRTL
         },
       ]
       setDocumentMessages(finalMessages)
@@ -57,6 +60,7 @@ const useChat = () => {
           text: toastMessages("errorOccurred"),
           isUser: false,
           isLoading: false,
+          isRTL
         },
       ]
       setDocumentMessages(errorMessages)
@@ -67,12 +71,12 @@ const useChat = () => {
     if (!prompt.trim()) return
 
     // Add user message
-    const userMessage = { text: prompt, isUser: true, isLoading: false }
+    const userMessage = { text: prompt, isUser: true, isLoading: false , isRTL }
     const updatedMessages = [...(tabularMessages || []), userMessage]
     setTabularMessages(updatedMessages)
 
     // Add bot loading message
-    const loadingMessage = { text: "", isUser: false, isLoading: true }
+    const loadingMessage = { text: "", isUser: false, isLoading: true , isRTL }
     const messagesWithLoading = [...updatedMessages, loadingMessage]
     setTabularMessages(messagesWithLoading)
    
@@ -87,6 +91,7 @@ const useChat = () => {
           text: data.data,
           isUser: false,
           isLoading: false,
+          isRTL
         },
       ]
       setTabularMessages(finalMessages)
@@ -100,6 +105,7 @@ const useChat = () => {
           text: toastMessages("errorOccurred"),
           isUser: false,
           isLoading: false,
+          isRTL
         },
       ]
       setTabularMessages(errorMessages)
@@ -110,12 +116,12 @@ const useChat = () => {
     if (!prompt.trim()) return
 
     // Add user message
-    const userMessage = { text: prompt, isUser: true, isLoading: false }
+    const userMessage = { text: prompt, isUser: true, isLoading: false , isRTL }
     const updatedMessages = [...(mathMessages || []), userMessage]
     setMathMessages(updatedMessages)
 
     // Add bot loading message
-    const loadingMessage = { text: "", isUser: false, isLoading: true }
+    const loadingMessage = { text: "", isUser: false, isLoading: true , isRTL}
     const messagesWithLoading = [...updatedMessages, loadingMessage]
     setMathMessages(messagesWithLoading)
 
@@ -129,6 +135,7 @@ const useChat = () => {
           text: data.data,
           isUser: false,
           isLoading: false,
+          isRTL
         },
       ]
       setMathMessages(finalMessages)
@@ -142,6 +149,7 @@ const useChat = () => {
           text: toastMessages("errorOccurred"),
           isUser: false,
           isLoading: false,
+          isRTL
         },
       ]
       setMathMessages(errorMessages)
